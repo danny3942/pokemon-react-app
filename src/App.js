@@ -1,69 +1,85 @@
 import React, { useState, useEffect } from 'react'
 import PokemonList from './PokemonList'
-import axios from 'axios'
 import PokemonInfo from './PokemonInfo'
-import TypeButtons from "./TypeButtons";
+import TypeButtons from './TypeButtons'
 
 
 export default function App() {
-  const [currentPageUrl, setCurrentPageUrl] = useState("https://pokeapi.co/api/v2/type/1/")
-  const [currentPokemon, setCurrentPokemon] = useState("https://pokeapi.co/api/v2/pokemon/1/")
-  const [typeName, setTypeName] = useState()
-  const [pName, setPName] = useState()
+  const [currentPageUrl, setCurrentPageUrl] = useState("normal")
+  const [currentPokemon, setCurrentPokemon] = useState(1)
+  const [pokemonMainType,setPokemonMainType] = useState([])
   const [pId, setPId] = useState()
+  const [pName, setPName] = useState()
   const [spriteUrl, setSpriteUrl] = useState()
   const [spriteShinyUrl, setSpriteShinyUrl] = useState()
   const [stats, setStats] = useState([])
   const [abilities, setAbilities] = useState([])
   const [statNames, setStatNames] = useState([])
   const [pTypes, setPTypes] = useState([])
-  const [pTypeUrls, setPTypeUrls] = useState([])
   const [pokemonNames, setPokemonNames] = useState([])
-  const [pokemonUrls, setPokemonUrls] = useState([])
   const [types, setTypes] = useState([])
   const [loading, setLoading] = useState(true)
-  const typeUrl = "https://pokeapi.co/api/v2/type"
-
+  var Pokedex = require('pokedex-promise-v2')
   useEffect(() => {
     setLoading(true)
-    let cancel
-    axios.get(currentPageUrl, {
-      cancelToken: new axios.CancelToken(c => cancel = c)
-    }).then(res => {
-    setLoading(false)
-    setTypeName(res.data.name)
-    setPokemonNames(res.data.pokemon.map(p => p.pokemon.name))
-    setPokemonUrls(res.data.pokemon.map(p => p.pokemon.url))
-  })
-    axios.get(currentPokemon, {
-      cancelToken: new axios.CancelToken(c => cancel = c)
-    }).then(res => {
+    var P = new Pokedex();
+    P.getTypeByName(currentPageUrl) // with Promise
+    .then(function(res) {
       setLoading(false)
-      setPName(res.data.name)
-      setPTypes(res.data.types.map(t => t.type.name))
-      setPTypeUrls(res.data.types.map(t => t.type.url))
-      setStats(res.data.stats.map(s => s.base_stat))
-      setStatNames(res.data.stats.map(s => s.stat.name))
-      setAbilities(res.data.abilities.map(a => a.ability.name))
-      setSpriteUrl(res.data.sprites.front_default)
-      setSpriteShinyUrl(res.data.sprites.front_shiny)
-      setPId(res.data.id)
-  })
-    axios.get(typeUrl, {
-    cancelToken: new axios.CancelToken(c => cancel = c)
-  }).then(res => {
-    setLoading(false)
-    setTypes(res.data.results.map(t => t.name))
-})
-    return () => cancel()
-  }, [currentPageUrl , currentPokemon])
+      setPokemonNames(res.pokemon.map(p => p.pokemon.name))
+    })
+    .catch(function(error) {
+      setLoading(false)
+      console.log('There was an ERROR: ', error);
+    })
+    setLoading(true)
+    P.getPokemonByName(currentPokemon)
+      .then(function(res) {
+        setLoading(false)
+        setPName(res.name)
+        setSpriteUrl(res.sprites.front_default)
+        setSpriteShinyUrl(res.sprites.front_shiny)
+        setStats(res.stats.map(s => s.base_stat))
+        setStatNames(res.stats.map(s => s.stat.name))
+        setAbilities(res.abilities.map(a => a.ability.name))
+        setPTypes(res.types.map(t => t.type.name))
+        setPId(res.id)
+    })
+      .catch(function(error) {
+        setLoading(false)
+        console.log('There was an ERROR: ', error);
+      })
+    setLoading(true)
+    P.getTypesList()
+      .then(function(res) {
+        setLoading(false)
+        setTypes(res.results.map(t => t.name))
+      })
+      .catch(function(error) {
+        setLoading(false)
+        console.log('There was an ERROR: ', error);
+      })
+  }, [currentPageUrl , currentPokemon, Pokedex])
+  useEffect(() => {
+    var P = new Pokedex()
+    setPokemonMainType(pokemonNames.map(function(name) {
+      var temp
+      P.getPokemonByName(name)
+      .then(function(res) {
+        setLoading(false)
+        temp = res.types[0].type.name
+      })
+      .catch(function(error) {
+        setLoading(false)
+        console.log('There was an ERROR: ', error);
+        temp = error
+      })
+      return temp
+    }))
+  }, [pokemonNames, Pokedex])
 
   function changeType(newTypeUrl){
     setCurrentPageUrl(newTypeUrl)
-  }
-
-  function getType(){
-    return (typeName)
   }
 
   function gotoPokemonInfo(url){
@@ -71,6 +87,8 @@ export default function App() {
   }
 
   if (loading) return "Loading..."
+
+  console.log(pokemonMainType)
 
   return (<>
   <PokemonInfo 
@@ -80,11 +98,10 @@ export default function App() {
     statNames={statNames}
     abilities={abilities}
     spriteUrl={spriteUrl}
-    pId={pId}
     spriteShinyUrl={spriteShinyUrl}
     gotoPokemonInfo={gotoPokemonInfo}
     changeType={changeType}
-    pTypeUrls={pTypeUrls}
+    pId={pId}
     />
   <div>----------------------</div>
   <TypeButtons 
@@ -94,9 +111,8 @@ export default function App() {
   <div>----------------------</div>
   <PokemonList 
     pokemonNames={pokemonNames}
-    pokemonUrls={pokemonUrls}
     gotoPokemonInfo={gotoPokemonInfo}
-    getType={getType}
+    pokemonMainType={pokemonMainType}
     />
     
   </>

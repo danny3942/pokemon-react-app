@@ -65,3 +65,7 @@ button {
 #fairy {
   background-color: pink;
 }
+label {
+  background-color: rgb(124, 115, 85);
+  padding: 4px;
+}
