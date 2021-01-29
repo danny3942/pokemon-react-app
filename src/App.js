@@ -1,14 +1,25 @@
 import React, { useState, useEffect } from 'react'
 import PokemonList from './PokemonList'
 import axios from 'axios'
-import Pagination from './Pagination'
+import PokemonInfo from './PokemonInfo'
+import TypeButtons from "./TypeButtons";
 
 export default function App() {
-  const [pokemon, setPokemon] = useState([])
-  const [currentPageUrl, setCurrentPageUrl] = useState("https://pokeapi.co/api/v2/pokemon")
-  const [nextPageUrl, setNextPageUrl] = useState()
-  const [prevPageUrl, setPrevPageUrl] = useState()
+  const [currentPageUrl, setCurrentPageUrl] = useState("https://pokeapi.co/api/v2/type/1/")
+  const [currentPokemon, setCurrentPokemon] = useState("https://pokeapi.co/api/v2/pokemon/1/")
+  const [pName, setPName] = useState()
+  const [pId, setPId] = useState()
+  const [spriteUrl, setSpriteUrl] = useState()
+  const [spriteShinyUrl, setSpriteShinyUrl] = useState()
+  const [stats, setStats] = useState([])
+  const [abilities, setAbilities] = useState([])
+  const [statNames, setStatNames] = useState([])
+  const [pTypes, setPTypes] = useState([])
+  const [pokemonNames, setPokemonNames] = useState([])
+  const [pokemonUrls, setPokemonUrls] = useState([])
+  const [types, setTypes] = useState([])
   const [loading, setLoading] = useState(true)
+  const typeUrl = "https://pokeapi.co/api/v2/type"
 
   useEffect(() => {
     setLoading(true)
@@ -17,29 +28,64 @@ export default function App() {
       cancelToken: new axios.CancelToken(c => cancel = c)
     }).then(res => {
     setLoading(false)
-    setNextPageUrl(res.data.next)
-    setPrevPageUrl(res.data.previous)
-    setPokemon(res.data.results.map(p => p.name))
+    setPokemonNames(res.data.pokemon.map(p => p.pokemon.name))
+    setPokemonUrls(res.data.pokemon.map(p => p.pokemon.url))
   })
+    axios.get(currentPokemon, {
+      cancelToken: new axios.CancelToken(c => cancel = c)
+    }).then(res => {
+      setLoading(false)
+      setPName(res.data.name)
+      setPTypes(res.data.types.map(t => t.type.name))
+      setStats(res.data.stats.map(s => s.base_stat))
+      setStatNames(res.data.stats.map(s => s.stat.name))
+      setAbilities(res.data.abilities.map(a => a.ability.name))
+      setSpriteUrl(res.data.sprites.front_default)
+      setSpriteShinyUrl(res.data.sprites.front_shiny)
+      setPId(res.data.id)
+  })
+    axios.get(typeUrl, {
+    cancelToken: new axios.CancelToken(c => cancel = c)
+  }).then(res => {
+    setLoading(false)
+    setTypes(res.data.results.map(t => t.name))
+})
     return () => cancel()
-  }, [currentPageUrl])
+  }, [currentPageUrl , currentPokemon])
 
-  function gotoNextPage(){
-    setCurrentPageUrl(nextPageUrl)
+  function changeType(newTypeUrl){
+    setCurrentPageUrl(newTypeUrl)
   }
 
-  function gotoPrevPage(){
-    setCurrentPageUrl(prevPageUrl)
+  function gotoPokemonInfo(url){
+    setCurrentPokemon(url)
   }
 
   if (loading) return "Loading..."
 
   return (<>
-  <PokemonList pokemon={pokemon} />
-  <Pagination 
-    gotoNextPage={nextPageUrl ? gotoNextPage : null} 
-    gotoPrevPage={prevPageUrl ? gotoPrevPage : null}
+  <PokemonInfo 
+    pName={pName}
+    pTypes={pTypes}
+    stats={stats}
+    statNames={statNames}
+    abilities={abilities}
+    spriteUrl={spriteUrl}
+    pId={pId}
+    spriteShinyUrl={spriteShinyUrl}
     />
+  <div>----------------------</div>
+  <TypeButtons 
+    types={types}
+    changeType={changeType}
+  />
+  <div>----------------------</div>
+  <PokemonList 
+    pokemonNames={pokemonNames}
+    pokemonUrls={pokemonUrls}
+    gotoPokemonInfo={gotoPokemonInfo}
+    />
+    
   </>
   );
 }
