@@ -1,0 +1,67 @@
+body {
+  background-color: rgb(41, 40, 40);
+}
+button {
+    background-color: seagreen;
+    border: none;
+    color: black;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+  }
+#normal {
+  background-color:rgb(121, 103, 78);
+}
+#fighting {
+  background-color:red;
+}
+#flying {
+  background-color: rgb(131, 101, 241);
+}
+#poison {
+  background-color: rgb(196, 38, 196);
+}
+#ground {
+  background-color:rgb(202, 167, 90);
+}
+#rock {
+  background-color:rgb(153, 125, 63);
+}
+#bug {
+  background-color: rgb(145, 170, 74);
+}
+#ghost {
+  background-color:rgb(114, 71, 163);
+}
+#steel {
+  background-color: rgb(169, 176, 182);
+}
+#water {
+  background-color: rgb(93, 104, 255);
+}
+#grass {
+  background-color: green;
+}
+#electric {
+  background-color: yellow;
+}
+#psychic {
+  background-color: hotpink;
+}
+#ice {
+  background-color: skyblue;
+}
+#fire {
+  background-color: rgb(247, 105, 39);
+}
+#dragon {
+  background-color: rgb(77, 60, 185);
+}
+#dark {
+  background-color:rgb(41, 31, 29);
+}
+#fairy {
+  background-color: pink;
+}
